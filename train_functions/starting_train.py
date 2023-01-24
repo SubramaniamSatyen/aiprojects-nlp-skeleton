@@ -37,21 +37,32 @@ def starting_train(train_dataset, val_dataset, model, hyperparameters, n_eval):
 
         # Loop over each batch in the dataset
         for batch in tqdm(train_loader):
+            inputs, labels = batch
+
             # TODO: Forward propagate
+            outputs = model(inputs)
 
             # TODO: Backpropagation and gradient descent
+            loss = loss_fn(outputs, labels)
+            loss.backward()       # Compute gradients
+            optimizer.step()      # Update all the weights with the gradients you just calculated
+            optimizer.zero_grad() # Clear gradients before next iteration
 
             # Periodically evaluate our model + log to Tensorboard
             if step % n_eval == 0:
+                model.eval()
                 # TODO:
                 # Compute training loss and accuracy.
                 # Log the results to Tensorboard.
+                compute_accuracy(outputs, labels)
+                ### Log results
 
                 # TODO:
                 # Compute validation loss and accuracy.
                 # Log the results to Tensorboard. 
                 # Don't forget to turn off gradient calculations!
                 evaluate(val_loader, model, loss_fn)
+                model.train()
 
             step += 1
 
@@ -82,3 +93,13 @@ def evaluate(val_loader, model, loss_fn):
     TODO!
     """
     pass
+    with torch.no_grad():
+        test_vector = torch.LongTensor(dataset.vectorizer.transform([text]).toarray()) #format test data
+
+        output = model(test_vector)
+        prediction = torch.sigmoid(output).item()
+
+        if prediction > 0.5:
+            print(f'{prediction:0.3}: Positive sentiment')
+        else:
+            print(f'{prediction:0.3}: Negative sentiment')
